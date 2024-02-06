@@ -15,6 +15,15 @@
     <style>
       :root {
         --inset-padding: 20px;
+        --offset: -40px;
+        --font-size-large: 7rem;
+        --font-size-small: 3rem;
+
+        @media (max-width: 800px) {
+          --offset: -30px;
+          --font-size-large: 5rem;
+          --font-size-small: 2rem;
+        }
       }
 
       * {
@@ -44,7 +53,7 @@
       }
 
       h1 {
-        font-size: 7rem;
+        font-size: var(--font-size-large);
         color: white;
         text-shadow: 0px -1px 1px rgba(0, 0, 0, 0.6);
         animation: scaleIn 500ms forwards;
@@ -54,7 +63,7 @@
 
       #clock,
       a {
-        font-size: 3rem;
+        font-size: var(--font-size-small);
         color: white;
         text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.3);
       }
@@ -67,7 +76,7 @@
       }
 
       #clock {
-        margin-bottom: -40px;
+        margin-bottom: var(--offset);
       }
 
       .links {
@@ -75,8 +84,8 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.5rem;
-        margin-top: -30px;
+        gap: 2rem;
+        margin-top: var(--offset);
       }
 
       @keyframes scaleIn {
@@ -90,17 +99,6 @@
           opacity: 1;
         }
       }
-
-      @media (min-width: 800px) {
-        h1 {
-          font-size: 5rem;
-        }
-
-        #clock,
-        .links {
-          font-size: 2rem;
-        }
-      }
     </style>
   </head>
   <body>
@@ -110,7 +108,6 @@
 
     <div class="links">
       <a href="https://github.com/nedjulius" target="_blank">github</a>
-      <span>•</span>
       <a href="mailto:hi@nedjulius.xyz">email</a>
     </div>
 
