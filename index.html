@@ -112,7 +112,19 @@
     </div>
 
     <script>
-      const EST_OFFSET = -300; // GMT -05:00
+      const EST_OFFSET = -240 - (isDST() ? 0 : 60); // GMT -04:00
+
+      function isDST() {
+        const currDate = new Date();
+        const january = new Date(
+          currDate.getFullYear(),
+          0,
+          1
+        ).getTimezoneOffset();
+        const july = new Date(currDate.getFullYear(), 6, 1).getTimezoneOffset();
+        return Math.max(january, july) !== currDate.getTimezoneOffset();
+      }
+
       function startLiveClock() {
         const currDate = new Date();
         document.getElementById("clock").textContent = new Date(
