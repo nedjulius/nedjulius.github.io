@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Selected Work — Portfolio</title>
+<meta name="description" content="Explore selected photography projects: studies in architecture, landscape, light, and form.">
+<meta property="og:title" content="Selected Work — Portfolio"><meta property="og:description" content="Photography projects exploring architecture, landscape, light, and form."><meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23121416'/%3E%3Ctext x='6' y='24' fill='white' font-size='24'%3EP%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#ffffff;color:#222;font:16px Arial,sans-serif}main{min-height:100svh;display:grid;place-items:center;overflow:hidden}.stage{position:relative;width:100%;height:100svh;overflow:hidden;touch-action:pan-y;--spacing:clamp(300px,39vw,620px);--size:1;--ring-radius:420px}.project{position:absolute;left:50%;top:50%;height:280px;width:660px;margin-left:-330px;transition:transform .36s cubic-bezier(.22,.61,.36,1),opacity .36s;transform:translateX(calc(var(--position)*var(--spacing))) translateY(-50%) scale(calc(var(--scale)*var(--size)));opacity:var(--opacity);z-index:var(--layer)}@media(hover:hover){.project:not(.active):hover{opacity:.52}}.project:not(.active):focus-within{opacity:.52}.images{height:280px;position:relative;perspective:1000px}.rotor.auto-rotating{transition:none}.rotor.auto-rotating figure{transition:opacity .36s}.rotor{position:relative;height:100%;transform-style:preserve-3d;transform:translateZ(calc(-1 * var(--ring-radius))) rotateY(var(--rotation,0deg));transition:transform .36s cubic-bezier(.22,.61,.36,1)}.images figure{position:absolute;top:0;left:50%;margin:0 0 0 -105px;width:210px;height:280px;transition:transform .36s cubic-bezier(.22,.61,.36,1),opacity .36s;transform:rotateY(var(--angle)) translateZ(var(--ring-radius)) scale(var(--focus-scale,1));backface-visibility:hidden;opacity:var(--visible);border:0;background:#24292d;cursor:pointer}.images figure::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--shade,0);pointer-events:none;transition:opacity .36s}.images img{width:100%;height:100%;object-fit:cover;display:block}.project.near,.project.near .rotor{will-change:transform}.project.near figure{will-change:transform,opacity}.project.resetting,.project.resetting .rotor,.project.resetting figure{transition:none!important}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}@media(max-width:700px){.stage{--size:.55;--spacing:300px}}@media(prefers-reduced-motion:reduce){.project,.rotor,.images figure,.images figure::after{transition:none}}
+</style></head><body><main><h1 class="sr-only">Selected photography portfolio</h1><section class="stage" aria-label="Project carousels. Arrow keys change photos; Shift and arrow keys change projects." tabindex="0"></section><p id="status" class="sr-only" aria-live="polite"></p></main><script>
+const photos=[['photo-1544850716-ef48420ae3bc','Rocky coastline and blue ocean'],['photo-1746911779503-f16ee2088257','Repeating concrete balconies'],['photo-1522743791393-522312deeebf','Concrete monoliths against the sky'],['photo-1680647337398-03be08e138eb','Angular facade and dark sky'],['photo-1549791084-5f78368b208b','Minimal white architectural forms']];
+const projects=[{title:'Coastal studies',index:0},{title:'Concrete & light',index:2},{title:'Quiet geometry',index:4}];
+let current=1;const stage=document.querySelector('.stage');const mod=(n,m)=>(n%m+m)%m;
+const ringCount=photos.length*2,angleStep=360/ringCount;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const copies=new Map();let moving=false,pending=0,finishTimer,gesture,suppressClick=false;
+function createCopy(sequence){
+ const i=mod(sequence,projects.length),p=projects[i];
+ const a=document.createElement('article');a.className='project';a.dataset.sequence=sequence;a.setAttribute('aria-label',p.title);
+ a.innerHTML='<div class="images"><div class="rotor"></div></div>';a.rotor=a.querySelector('.rotor');
+ Array.from({length:ringCount},(_,j)=>photos[j%photos.length]).forEach((photo,j)=>{const f=document.createElement('figure');const img=document.createElement('img');img.width=210;img.height=280;img.decoding="async";img.draggable=false;img.src='https://images.unsplash.com/'+photo[0]+'?auto=format&fit=crop&w=600&q=80';img.alt=photo[1];f.append(img);f.onclick=()=>{if(suppressClick)return;const selected=Number(a.dataset.sequence);const offset=selected-current;if(offset)move(Math.sign(offset));else{const p=projects[mod(selected,projects.length)];const half=Math.floor(ringCount/2);const delta=mod(j-Math.round(p.index)+half,ringCount)-half;spin(mod(selected,projects.length),delta)}};a.rotor.append(f)});
+ copies.set(sequence,a);stage.append(a);placeOffscreen(a,sequence);
+}
+function radius(){const pixels=innerWidth<=700?300:Math.min(620,Math.max(300,innerWidth*.39));return Math.ceil(innerWidth/(2*pixels))+2;}
+function placeOffscreen(a,sequence){a.classList.add('resetting');a.style.transition='none';a.dataset.sequence=sequence;a.setAttribute('aria-label',projects[mod(sequence,projects.length)].title);renderCopy(a,sequence);requestAnimationFrame(()=>{a.style.transition='';a.classList.remove('resetting')})}
+function fill(){const r=radius();for(let n=current-r;n<=current+r;n++)if(!copies.has(n))createCopy(n);}
+function recycle(){const r=radius(),pool=[];for(const [n,a] of copies)if(Math.abs(n-current)>r){copies.delete(n);pool.push(a)}
+ for(let n=current-r;n<=current+r;n++)if(!copies.has(n)){const a=pool.pop();if(a){copies.set(n,a);placeOffscreen(a,n)}else createCopy(n)}
+ for(const a of pool)a.remove();
+}
+function spin(i,d){projects[mod(i,projects.length)].index=Math.round(projects[mod(i,projects.length)].index)+d;render()}
+function focusScale(card,index,active){
+ if(!active)return 1;
+ const half=ringCount/2;
+ const distance=Math.abs(mod(card-index+half,ringCount)-half);
+ // A cosine bell has zero slope at the center and both ends.
+ const weight=distance<1?(1+Math.cos(Math.PI*distance))/2:0;
+ return 1+.3*weight;
+}
+function updateFocus(a,index){a.querySelectorAll('figure').forEach((f,j)=>f.style.setProperty('--focus-scale',focusScale(j,index,true)))}
+function renderCopy(a,sequence){const pos=sequence-current,i=mod(sequence,projects.length);
+ a.style.setProperty('--position',pos);a.style.setProperty('--scale',pos?'.4556':'1.15');a.style.setProperty('--opacity',pos?'.32':'1');a.style.setProperty('--layer',pos?'1':'3');a.classList.toggle('active',!pos);a.classList.toggle('near',Math.abs(pos)<=2);
+ const outside=Math.abs(pos)>1;a.inert=outside;a.setAttribute('aria-hidden',String(outside));
+ // Move the parent row without also rotating, resizing, or revealing its cards.
+ if(moving&&a.dataset.imageState!==undefined)return;
+ a.style.setProperty('--ring-radius','420px');
+ const displayIndex=projects[i].index;
+ a.rotor.style.setProperty('--rotation',(-displayIndex*angleStep)+'deg');
+ const imageState=(pos===0)+':'+Math.round(displayIndex);if(a.dataset.imageState===imageState)return;a.dataset.imageState=imageState;
+ a.querySelectorAll('figure').forEach((f,j)=>{const half=Math.floor(ringCount/2);const slot=mod(j-Math.round(displayIndex)+half,ringCount)-half;const visible=Math.abs(slot)<=(pos?1:2);
+ f.style.setProperty('--focus-scale',focusScale(j,displayIndex,true));f.style.setProperty('--angle',(j*angleStep)+'deg');f.style.setProperty('--shade',Math.abs(slot)*.16);f.style.setProperty('--visible',visible?'1':'0');f.style.pointerEvents=visible?'auto':'none';f.setAttribute('aria-hidden',String(!visible));
+ });
+}
+function render(){for(const [sequence,a] of copies)renderCopy(a,sequence);document.querySelector('#status').textContent=projects[mod(current,projects.length)].title;}
+function completeMove(){if(!moving)return;clearTimeout(finishTimer);moving=false;render();recycle();if(pending){const d=Math.sign(pending);pending-=d;move(d)}}
+function move(d){if(moving){pending+=d;return}for(const a of copies.values())a.rotor.classList.remove('auto-rotating');moving=true;current+=d;render();if(reduced.matches)completeMove();else finishTimer=setTimeout(completeMove,380)}
+stage.onkeydown=e=>{if(e.target!==stage)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();if(e.shiftKey)move(e.key==='ArrowLeft'?-1:1);else spin(mod(current,projects.length),e.key==='ArrowLeft'?-1:1)}};
+stage.addEventListener('pointerdown',e=>{suppressClick=false;const a=e.target.closest('.project');gesture={x:e.clientX,y:e.clientY,sequence:a?Number(a.dataset.sequence):null}});
+stage.addEventListener('pointerup',e=>{if(!gesture)return;const dx=e.clientX-gesture.x,dy=e.clientY-gesture.y;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){suppressClick=true;const direction=dx<0?1:-1;if(gesture.sequence===current)spin(mod(current,projects.length),direction);else move(direction)}gesture=null});
+stage.addEventListener('pointercancel',()=>gesture=null);addEventListener('resize',()=>{if(!moving){recycle();render()}});fill();render();
+
+// One card every twelve seconds. Only the currently centered project advances.
+let hoverSequence=null,lastAutoTime=null;
+stage.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const a=e.target.closest('.project');hoverSequence=a?Number(a.dataset.sequence):null});
+stage.addEventListener('pointerout',e=>{if(e.pointerType==='touch')return;const a=e.relatedTarget?.closest?.('.project');hoverSequence=a?Number(a.dataset.sequence):null});
+stage.addEventListener('pointerleave',()=>{hoverSequence=null});
+addEventListener('pointerup',()=>{gesture=null});
+addEventListener('pointercancel',()=>{gesture=null});
+addEventListener('blur',()=>{hoverSequence=null;gesture=null});
+function autoRotate(now){
+ const elapsed=lastAutoTime===null?0:Math.min(now-lastAutoTime,50);lastAutoTime=now;
+ const running=!reduced.matches&&!document.hidden&&!moving&&!gesture&&hoverSequence!==current;
+ for(const [sequence,a] of copies)a.rotor.classList.toggle('auto-rotating',running&&mod(sequence,projects.length)===mod(current,projects.length));
+ if(running){const p=projects[mod(current,projects.length)];p.index+=elapsed/12000;const a=copies.get(current);a.rotor.style.setProperty('--rotation',(-p.index*angleStep)+'deg');if(a.dataset.imageState!=='true:'+Math.round(p.index))renderCopy(a,current);updateFocus(a,p.index)}
+ requestAnimationFrame(autoRotate);
+}
+requestAnimationFrame(autoRotate);
+</script></body></html>
